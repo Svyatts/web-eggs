@@ -1,50 +1,90 @@
 {
-    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+    "_comment": "",
     "meta": {
         "version": "PTDL_v2",
         "update_url": null
     },
-    "exported_at": "2025-03-23T09:39:35+01:00",
-    "name": "WebHost Egg",
-    "author": "info@djfinn.nl",
-    "description": "Introducing a versatile hosting solution for any website!\r\n\r\nWith built-in Composer support, simply specify the packages you need in the \u201cPackages\u201d box, and they\u2019ll be installed automatically when the server starts. Want to set up WordPress? Just toggle the WordPress slider during server setup, and WordPress will be ready to go in moments.\r\n\r\nSupport for Pelican panel & Pterodactyl!\r\n\r\n\u00a9 Sigma Productions 2025",
+    "exported_at": "",
+    "name": "Веб-хостинг",
+    "author": "i@sgatilov.ru",
+    "description": "Универсальное решение для хостинга любого веб-сайта.\r\n\r\nПоддержка Composer, WordPress, NamelessMC.\r\nДва режима работы: прямой доступ по IP:порту или работа за реверс-прокси по домену.\r\nПоддержка панелей Pelican и Pterodactyl.\r\n\r\n© Sigma Productions 2025",
     "features": null,
     "docker_images": {
-        "PHP 8.4": "ghcr.io\/sigma-production\/nginx-ptero:8.4",
-        "PHP 8.3": "ghcr.io\/sigma-production\/nginx-ptero:8.3",
-        "PHP 8.2": "ghcr.io\/sigma-production\/nginx-ptero:8.2",
-        "PHP 8.1": "ghcr.io\/sigma-production\/nginx-ptero:8.1",
-        "PHP 8.0 - EOL ": "ghcr.io\/sigma-production\/nginx-ptero:8.0"
+        "PHP 8.4": "ghcr.io/sigma-production/nginx-ptero:8.4",
+        "PHP 8.3": "ghcr.io/sigma-production/nginx-ptero:8.3",
+        "PHP 8.2": "ghcr.io/sigma-production/nginx-ptero:8.2",
+        "PHP 8.1": "ghcr.io/sigma-production/nginx-ptero:8.1",
+        "PHP 8.0 - Устаревшая": "ghcr.io/sigma-production/nginx-ptero:8.0"
     },
     "file_denylist": [],
-    "startup": "{{STARTUP_CMD}} && if [[ -n \"${COMPOSER_MODULES}\" ]]; then composer require \"${COMPOSER_MODULES}\" --working-dir=\/home\/container\/webroot; fi",
+    "startup": "{{STARTUP_CMD}} && if [[ -n \"${COMPOSER_MODULES}\" ]]; then composer require \"${COMPOSER_MODULES}\" --working-dir=/home/container/webroot; fi",
     "config": {
-        "files": "{\r\n    \"nginx\/conf.d\/default.conf\": {\r\n        \"parser\": \"file\",\r\n        \"find\": {\r\n            \"    listen \": \"    listen {{server.build.default.port}};\"\r\n        }\r\n    },\r\n    \"nginx\/conf.d\/nextcloud.conf\": {\r\n        \"parser\": \"file\",\r\n        \"find\": {\r\n            \"    listen \": \"    listen {{server.build.default.port}};\"\r\n        }\r\n    }\r\n}",
-        "startup": "{\r\n    \"done\": \"[SUCCESS] Web server is running. All services started successfully.\",\r\n    \"userInteraction\": []\r\n}",
-        "logs": "{\r\n    \"custom\": false,\r\n    \"location\": \"logs\/latest.log\"\r\n}",
+        "files": "{\r\n    \"nginx/conf.d/default.conf\": {\r\n        \"parser\": \"file\",\r\n        \"find\": {\r\n            \"    listen \": \"    listen {{server.build.default.port}};\"\r\n        }\r\n    },\r\n    \"nginx/conf.d/nextcloud.conf\": {\r\n        \"parser\": \"file\",\r\n        \"find\": {\r\n            \"    listen \": \"    listen {{server.build.default.port}};\"\r\n        }\r\n    }\r\n}",
+        "startup": "{\r\n    \"done\": \"[УСПЕХ] Веб-сервер запущен. Все сервисы успешно стартовали.\",\r\n    \"userInteraction\": []\r\n}",
+        "logs": "{\r\n    \"custom\": false,\r\n    \"location\": \"logs/latest.log\"\r\n}",
         "stop": "^C & ^C"
     },
     "scripts": {
         "installation": {
-            "script": "#!\/bin\/ash\r\n\r\n# Set working directory\r\ncd \/mnt\/server || exit 1\r\napk --update add git unzip curl || { echo \"Failed to install Git and required packages\"; exit 1; }\r\n\r\n# Clone the repository containing nginx and php configurations\r\nif git clone https:\/\/github.com\/Sigma-Production\/ptero-eggs .\/temp; then\r\n    cp -r .\/temp\/nginx .\/temp\/php-fpm .\/temp\/webroot \/mnt\/server\/\r\n    cp .\/temp\/start.sh \/mnt\/server\/\r\n    chmod +x \/mnt\/server\/start.sh\r\n    rm -rf .\/temp\r\nelse\r\n    echo \"Failed to clone repository\"; exit 1\r\nfi\r\n\r\n# Prepare directories\r\nmkdir -p \/mnt\/server\/tmp \/mnt\/server\/logs\r\n\r\n# WordPress installation\r\nif [ \"${WORDPRESS}\" = \"true\" ] || [ \"${WORDPRESS}\" = \"1\" ]; then\r\n    echo \"Installing WordPress...\"\r\n    cd \/mnt\/server\/webroot || exit 1\r\n    if curl -fLO https:\/\/wordpress.org\/latest.zip; then\r\n        unzip latest.zip && mv wordpress\/* . && rm -rf wordpress latest.zip\r\n        echo \"WordPress installation complete. Visit http:\/\/ip:port\/wp-admin\"\r\n    else\r\n        echo \"Failed to download WordPress\"; exit 1\r\n    fi\r\n    exit 0\r\nfi\r\n\r\n# NamelessMC installation\r\nif [ \"${NAMELESSMC}\" = \"true\" ] || [ \"${NAMELESSMC}\" = \"1\" ]; then\r\n    echo \"Installing NamelessMC...\"\r\n    cd \/mnt\/server\/webroot || exit 1\r\n    curl -L \"https:\/\/github.com\/NamelessMC\/Nameless\/releases\/latest\/download\/nameless-deps-dist.tar.xz\" | \\\r\n        tar -xJ -C \/mnt\/server\/webroot || { echo \"Failed to download or extract NamelessMC\"; exit 1; }\r\n\r\n    # Configure Nginx for NamelessMC\r\n    echo \"Configuring Nginx for NamelessMC...\"\r\n    cd \/mnt\/server\/nginx\/conf.d || { echo \"Failed to navigate to Nginx configuration directory\"; exit 1; }\r\n    rm -f default.conf  # Remove the default configuration file if it exists\r\n    curl -LO https:\/\/raw.githubusercontent.com\/Sigma-Production\/ptero-eggs\/NamelessMC\/nginx\/conf.d\/default.conf || { echo \"Failed to download Nginx configuration\"; exit 1; }\r\n    \r\n    echo \"NamelessMC installation and configuration completed.\"\r\n    exit 0\r\nfi\r\n\r\n# Check for user-uploaded content\r\nif [ \"${USER_UPLOAD}\" = \"true\" ] || [ \"${USER_UPLOAD}\" = \"1\" ]; then\r\n    echo \"User upload enabled. Assuming custom setup.\"\r\n    exit 0\r\nfi\r\n\r\n# Configure Git repository if provided\r\ncd \/mnt\/server\/webroot || exit 1\r\n\r\n# Ensure .git extension for GIT_ADDRESS\r\n[ \"${GIT_ADDRESS##*.}\" != \"git\" ] && GIT_ADDRESS=\"${GIT_ADDRESS}.git\"\r\n\r\n# Authenticate if username and access token are provided\r\nif [ -n \"${USERNAME}\" ] && [ -n \"${ACCESS_TOKEN}\" ]; then\r\n    GIT_ADDRESS=\"https:\/\/${USERNAME}:${ACCESS_TOKEN}@${GIT_ADDRESS#https:\/\/}\"\r\nfi\r\n\r\n# Handle Git repository cloning or updating\r\nif [ -n \"$(ls -A \/mnt\/server\/webroot 2>\/dev\/null)\" ]; then\r\n    echo \"\/mnt\/server\/webroot directory is not empty.\"\r\n    if [ -d .git ] && [ -f .git\/config ]; then\r\n        ORIGIN=$(git config --get remote.origin.url)\r\n        if [ \"${ORIGIN}\" = \"${GIT_ADDRESS}\" ]; then\r\n            echo \"Pulling latest changes from GitHub\"\r\n            git pull || { echo \"Git pull failed\"; exit 1; }\r\n        else\r\n            echo \"Different Git origin detected; skipping pull to avoid conflicts.\"\r\n        fi\r\n    else\r\n        echo \"Directory contains files without a Git configuration.\"\r\n        exit 10\r\n    fi\r\nelse\r\n    echo \"\/mnt\/server\/webroot is empty. Cloning repository...\"\r\n    if [ -n \"${BRANCH}\" ]; then\r\n        echo \"Cloning branch ${BRANCH}\"\r\n        git clone --single-branch --branch \"${BRANCH}\" \"${GIT_ADDRESS}\" .\r\n    else\r\n        echo \"Cloning default branch\"\r\n        git clone \"${GIT_ADDRESS}\" .\r\n    fi\r\nfi\r\n\r\necho \"Installation complete. Visit http:\/\/ip:port\/\"",
+            "script": "#!/bin/ash\r\n\r\n# Установка рабочей директории\r\ncd /mnt/server || exit 1\r\napk --update add git unzip curl || { echo \"Не удалось установить Git и необходимые пакеты\"; exit 1; }\r\n\r\n# Клонирование репозитория с конфигурациями nginx и php\r\nif git clone https://github.com/Svyatts/web-eggs ./temp; then\r\n    cp -r ./temp/nginx ./temp/php-fpm ./temp/webroot /mnt/server/\r\n    cp ./temp/start.sh /mnt/server/\r\n    chmod +x /mnt/server/start.sh\r\n    rm -rf ./temp\r\nelse\r\n    echo \"Не удалось клонировать репозиторий\"; exit 1\r\nfi\r\n\r\n# Подготовка директорий\r\nmkdir -p /mnt/server/tmp /mnt/server/logs\r\n\r\n# Установка WordPress\r\nif [ \"${WORDPRESS}\" = \"true\" ] || [ \"${WORDPRESS}\" = \"1\" ]; then\r\n    echo \"Установка WordPress...\"\r\n    cd /mnt/server/webroot || exit 1\r\n    if curl -fLO https://wordpress.org/latest.zip; then\r\n        unzip latest.zip && mv wordpress/* . && rm -rf wordpress latest.zip\r\n        echo \"Установка WordPress завершена.\"\r\n        if [ -n \"${DOMAIN}\" ] && [ \"${PROXY_MODE}\" = \"1\" ]; then\r\n            echo \"Откройте сайт по адресу: https://${DOMAIN%% *}/wp-admin\"\r\n        else\r\n            echo \"Откройте сайт по адресу: http://ip:port/wp-admin\"\r\n        fi\r\n    else\r\n        echo \"Не удалось загрузить WordPress\"; exit 1\r\n    fi\r\n    exit 0\r\nfi\r\n\r\n# Установка NamelessMC\r\nif [ \"${NAMELESSMC}\" = \"true\" ] || [ \"${NAMELESSMC}\" = \"1\" ]; then\r\n    echo \"Установка NamelessMC...\"\r\n    cd /mnt/server/webroot || exit 1\r\n    curl -L \"https://github.com/NamelessMC/Nameless/releases/latest/download/nameless-deps-dist.tar.xz\" | \\\r\n        tar -xJ -C /mnt/server/webroot || { echo \"Не удалось загрузить или распаковать NamelessMC\"; exit 1; }\r\n\r\n    echo \"Настройка Nginx для NamelessMC...\"\r\n    cd /mnt/server/nginx/conf.d || { echo \"Не удалось перейти в директорию конфигурации Nginx\"; exit 1; }\r\n    rm -f default.conf\r\n    curl -LO https://raw.githubusercontent.com/Sigma-Production/ptero-eggs/NamelessMC/nginx/conf.d/default.conf || { echo \"Не удалось загрузить конфигурацию Nginx\"; exit 1; }\r\n\r\n    echo \"Установка и настройка NamelessMC завершены.\"\r\n    exit 0\r\nfi\r\n\r\n# Проверка на наличие загруженных пользователем файлов\r\nif [ \"${USER_UPLOAD}\" = \"true\" ] || [ \"${USER_UPLOAD}\" = \"1\" ]; then\r\n    echo \"Загрузка пользователем включена. Предполагается собственная настройка.\"\r\n    exit 0\r\nfi\r\n\r\n# Настройка Git-репозитория, если он предоставлен\r\ncd /mnt/server/webroot || exit 1\r\n\r\n[ \"${GIT_ADDRESS##*.}\" != \"git\" ] && GIT_ADDRESS=\"${GIT_ADDRESS}.git\"\r\n\r\nif [ -n \"${USERNAME}\" ] && [ -n \"${ACCESS_TOKEN}\" ]; then\r\n    GIT_ADDRESS=\"https://${USERNAME}:${ACCESS_TOKEN}@${GIT_ADDRESS#https://}\"\r\nfi\r\n\r\nif [ -n \"$(ls -A /mnt/server/webroot 2>/dev/null)\" ]; then\r\n    echo \"Директория /mnt/server/webroot не пуста.\"\r\n    if [ -d .git ] && [ -f .git/config ]; then\r\n        ORIGIN=$(git config --get remote.origin.url)\r\n        if [ \"${ORIGIN}\" = \"${GIT_ADDRESS}\" ]; then\r\n            echo \"Получение последних изменений из GitHub\"\r\n            git pull || { echo \"Не удалось выполнить git pull\"; exit 1; }\r\n        else\r\n            echo \"Обнаружен другой Git-источник; пропуск pull для избежания конфликтов.\"\r\n        fi\r\n    else\r\n        echo \"Директория содержит файлы без Git-конфигурации.\"\r\n        exit 10\r\n    fi\r\nelse\r\n    echo \"/mnt/server/webroot пуста. Клонирование репозитория...\"\r\n    if [ -n \"${BRANCH}\" ]; then\r\n        echo \"Клонирование ветки ${BRANCH}\"\r\n        git clone --single-branch --branch \"${BRANCH}\" \"${GIT_ADDRESS}\" .\r\n    else\r\n        echo \"Клонирование ветки по умолчанию\"\r\n        git clone \"${GIT_ADDRESS}\" .\r\n    fi\r\nfi\r\n\r\necho \"Установка завершена.\"",
             "container": "alpine:latest",
             "entrypoint": "ash"
         }
     },
     "variables": [
         {
-            "name": "Startup Command",
-            "description": "The command to startup the egg \r\n(Do not change if you do not know what you are doing!)",
+            "name": "Команда запуска",
+            "description": "Команда для запуска яйца\r\n(Не меняйте, если не знаете, что делаете!)",
             "env_variable": "STARTUP_CMD",
-            "default_value": ".\/start.sh",
+            "default_value": "./start.sh",
             "user_viewable": true,
             "user_editable": true,
             "rules": "present",
             "field_type": "text"
         },
         {
+            "name": "Домен",
+            "description": "Домен(ы), по которому будет доступен сайт. Можно указать несколько через пробел: example.com www.example.com\r\n\r\nИспользуется для server_name в Nginx, а также для автонастройки WordPress/NamelessMC URL.\r\n\r\nОставьте пустым, если хотите доступ только по IP:порту.",
+            "env_variable": "DOMAIN",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string",
+            "field_type": "text"
+        },
+        {
+            "name": "Режим работы за прокси",
+            "description": "Режим обработки запросов:\r\n\r\n0 = Прямой доступ по IP:порту (по умолчанию). Nginx отвечает на любой Host.\r\n1 = За реверс-прокси (Nginx Proxy Manager, Traefik, Caddy, Cloudflare). Nginx ограничивается доменом из переменной 'Домен', доверяет заголовкам X-Forwarded-*, корректно определяет HTTPS и реальные IP клиентов.",
+            "env_variable": "PROXY_MODE",
+            "default_value": "0",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|boolean",
+            "field_type": "text"
+        },
+        {
+            "name": "Доверенные прокси (CIDR)",
+            "description": "Список CIDR-диапазонов доверенных реверс-прокси через пробел.\r\nПрименяется только когда 'Режим работы за прокси' = 1.\r\n\r\nПримеры:\r\n- Docker сеть: 172.16.0.0/12\r\n- Локальная сеть: 10.0.0.0/8 192.168.0.0/16\r\n- Только конкретный IP: 203.0.113.5/32\r\n\r\nВНИМАНИЕ: НЕ ставьте 0.0.0.0/0 — это позволит подделывать IP клиентов.\r\nПо умолчанию: только Docker.",
+            "env_variable": "TRUSTED_PROXIES",
+            "default_value": "172.16.0.0/12 10.0.0.0/8",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string",
+            "field_type": "text"
+        },
+        {
+            "name": "Принудительный HTTPS за прокси",
+            "description": "Сообщать PHP/WordPress, что соединение шифровано, даже если nginx получил запрос по http (типичный случай — HTTPS терминируется на реверс-прокси).\r\n\r\nРешает проблему redirect loop у WordPress и Mixed Content в Nextcloud.\r\n\r\nИмеет смысл только когда 'Режим работы за прокси' = 1.\r\n\r\n0 = false (по умолчанию)\r\n1 = true",
+            "env_variable": "FORCE_HTTPS",
+            "default_value": "0",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|boolean",
+            "field_type": "text"
+        },
+        {
             "name": "Wordpress",
-            "description": "Enable or disable Wordpress\r\n\r\n0 = false (default)\r\n1 = true",
+            "description": "Включить или отключить установку Wordpress\r\n\r\n0 = false (по умолчанию)\r\n1 = true",
             "env_variable": "WORDPRESS",
             "default_value": "0",
             "user_viewable": true,
@@ -53,8 +93,8 @@
             "field_type": "text"
         },
         {
-            "name": "Composer modules",
-            "description": "Specify the composer modules you want to install, separate the packages with a space\r\nyou can always add packages later..",
+            "name": "Модули Composer",
+            "description": "Укажите модули composer, которые вы хотите установить, разделяя пакеты пробелом.\r\nВы всегда можете добавить пакеты позже.",
             "env_variable": "COMPOSER_MODULES",
             "default_value": "",
             "user_viewable": true,
@@ -63,8 +103,8 @@
             "field_type": "text"
         },
         {
-            "name": "Git Repo Address",
-            "description": "Git repo to clone\r\n\r\nI.E. https:\/\/github.com\/finnie2006\/repo_name",
+            "name": "Адрес Git репозитория",
+            "description": "Git репозиторий для клонирования\r\n\r\nНапример: https://github.com/finnie2006/repo_name",
             "env_variable": "GIT_ADDRESS",
             "default_value": "",
             "user_viewable": true,
@@ -73,8 +113,8 @@
             "field_type": "text"
         },
         {
-            "name": "Git Branch",
-            "description": "What branch to pull from github.\r\n\r\nDefault is blank to pull the repo default branch",
+            "name": "Ветка Git",
+            "description": "Ветка для клонирования из GitHub.\r\n\r\nПо умолчанию оставьте пустым для клонирования ветки по умолчанию",
             "env_variable": "BRANCH",
             "default_value": "",
             "user_viewable": true,
@@ -83,8 +123,8 @@
             "field_type": "text"
         },
         {
-            "name": "Auto Update",
-            "description": "Pull the latest files on startup when using a GitHub repo.",
+            "name": "Автообновление",
+            "description": "Загружать последние файлы при запуске при использовании GitHub репозитория.",
             "env_variable": "AUTO_UPDATE",
             "default_value": "0",
             "user_viewable": true,
@@ -93,8 +133,8 @@
             "field_type": "text"
         },
         {
-            "name": "User Uploaded Files",
-            "description": "Skip all the install stuff if you are letting a user upload files.\r\n\r\n0 = false (default)\r\n1 = true",
+            "name": "Загруженные пользователем файлы",
+            "description": "Пропустить все шаги установки, если вы позволяете пользователю загружать файлы.\r\n\r\n0 = false (по умолчанию)\r\n1 = true",
             "env_variable": "USER_UPLOAD",
             "default_value": "0",
             "user_viewable": true,
@@ -103,8 +143,8 @@
             "field_type": "text"
         },
         {
-            "name": "Git Username",
-            "description": "Username to auth with git.",
+            "name": "Имя пользователя Git",
+            "description": "Имя пользователя для аутентификации в git.",
             "env_variable": "USERNAME",
             "default_value": "",
             "user_viewable": true,
@@ -113,8 +153,8 @@
             "field_type": "text"
         },
         {
-            "name": "Git Access Token",
-            "description": "Password to use with git.\r\n\r\nIt's best practice to use a Personal Access Token.\r\nhttps:\/\/github.com\/settings\/tokens\r\nhttps:\/\/gitlab.com\/-\/profile\/personal_access_tokens",
+            "name": "Токен доступа Git",
+            "description": "Пароль для использования с git.\r\n\r\nЛучше всего использовать персональный токен доступа.\r\nhttps://github.com/settings/tokens\r\nhttps://gitlab.com/-/profile/personal_access_tokens",
             "env_variable": "ACCESS_TOKEN",
             "default_value": "",
             "user_viewable": true,
@@ -123,8 +163,8 @@
             "field_type": "text"
         },
         {
-            "name": "NamelessMC install",
-            "description": "Enable this if you want to install namelessmc.\r\n\r\nhttps:\/\/namelessmc.com\/",
+            "name": "Установка NamelessMC",
+            "description": "Включите эту опцию, если хотите установить NamelessMC.\r\n\r\nhttps://namelessmc.com/",
             "env_variable": "NAMELESSMC",
             "default_value": "0",
             "user_viewable": true,
